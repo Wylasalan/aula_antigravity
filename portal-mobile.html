@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WS Consultoria &amp; Gestão | Controle de Férias &amp; Ausências (Portal Web + App Mobile)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            factorial: {
+              coral: '#306464',
+              coralHover: '#234C4C',
+              coralLight: '#EAF3F3',
+              coralBorder: '#B7D4D4',
+              dark: '#191C24',
+              slate: '#525866',
+              bg: '#F8F9FA',
+              purple: '#0E8388',
+              teal: '#0E8388',
+              amber: '#F59E0B',
+            }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(25, 28, 36, 0.05)',
+            'card': '0 1px 3px 0 rgba(25, 28, 36, 0.04), 0 1px 2px -1px rgba(25, 28, 36, 0.04)',
+            'phone': '0 25px 60px -15px rgba(25, 28, 36, 0.28), 0 0 0 12px #191C24, 0 0 0 14px #343946',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F8F9FA;
+      color: #191C24;
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D1D5DB;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #9CA3AF;
+    }
+    .phone-scroll::-webkit-scrollbar {
+      width: 3px;
+    }
+    .phone-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.12);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden selection:bg-factorial-coral selection:text-white">
+
+  <!-- TOP GLOBAL SWITCHER BAR (Sincronização Portal Web <-> App Mobile) -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand + Environment Badge -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#306464] to-[#0E8388] flex items-center justify-center shadow-sm">
+            <span class="font-display font-extrabold text-white text-sm tracking-tighter">WS</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-display font-extrabold text-base sm:text-lg tracking-tight text-factorial-dark leading-none">WS Consultoria &amp; Gestão</span>
+            <span class="text-[10px] font-semibold text-[#0E8388] tracking-wide uppercase mt-0.5">People &amp; Gestão de Férias</span>
+          </div>
+        </div>
+        <span class="hidden md:inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          Sincronização em Tempo Real
+        </span>
+      </div>
+
+      <!-- View Mode Switcher -->
+      <div class="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200/70">
+        <button id="btn-mode-web" onclick="switchViewMode('web')"
+          class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-factorial-dark shadow-sm">
+          <i data-lucide="monitor" class="w-4 h-4 text-factorial-coral"></i>
+          <span>Portal Web <span class="hidden sm:inline text-gray-400 font-normal">(Gestor / RH)</span></span>
+        </button>
+        <button id="btn-mode-mobile" onclick="switchViewMode('mobile')"
+          class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-gray-600 hover:text-factorial-dark">
+          <i data-lucide="smartphone" class="w-4 h-4 text-factorial-coral"></i>
+          <span>App Mobile <span class="hidden sm:inline text-gray-400 font-normal">(Colaborador)</span></span>
+          <span id="mobile-badge-count" class="ml-0.5 px-1.5 py-0.2 bg-factorial-coral text-white text-[10px] font-bold rounded-full hidden">1</span>
+        </button>
+        <button id="btn-mode-split" onclick="switchViewMode('split')"
+          class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-gray-600 hover:text-factorial-dark">
+          <i data-lucide="columns" class="w-3.5 h-3.5 text-factorial-purple"></i>
+          <span>Lado a Lado</span>
+        </button>
+      </div>
+
+      <!-- Active Persona Selector -->
+      <div class="flex items-center gap-2.5">
+        <div class="hidden sm:flex flex-col text-right">
+          <span class="text-[11px] font-medium text-gray-400 leading-tight">Colaborador no App:</span>
+          <select id="active-employee-select" onchange="changeActiveEmployee(this.value)"
+            class="text-xs font-semibold text-factorial-dark bg-transparent border-none focus:ring-0 cursor-pointer p-0 text-right">
+          </select>
+        </div>
+        <img id="header-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full object-cover ring-2 ring-factorial-coral/20" />
+      </div>
+    </div>
+
+    <!-- Navegação Unificada -->
+    <nav class="bg-gray-50 border-t border-gray-200/80">
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto py-1.5 text-xs font-semibold">
+        <a href="index.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-factorial-dark hover:bg-gray-200/60 whitespace-nowrap transition">
+          Portal BPO &amp; Recibos
+        </a>
+        <a href="portal-mobile.html" class="px-3 py-1.5 rounded-lg bg-factorial-coralLight text-factorial-coral border border-factorial-coralBorder whitespace-nowrap">
+          Portal Web + App Mobile
+        </a>
+        <a href="configuracoes.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-factorial-dark hover:bg-gray-200/60 whitespace-nowrap transition">
+          Configurações &amp; Segurança
+        </a>
+        <a href="integracoes.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-factorial-dark hover:bg-gray-200/60 whitespace-nowrap transition">
+          Integrações &amp; Webhooks
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <main id="workspace-container" class="flex-1 flex flex-col xl:flex-row max-w-[1440px] w-full mx-auto">
+
+    <!-- 1. PORTAL WEB (VISÃO GESTOR / RH & DP) -->
+    <section id="portal-web-view" class="flex-1 flex flex-col lg:flex-row min-h-[calc(100vh-95px)] transition-all">
+
+      <!-- Left Sidebar -->
+      <aside class="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-gray-200/80 flex flex-col justify-between shrink-0">
+        <div class="p-4">
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-factorial-bg border border-gray-200/70 mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-[#306464] text-white font-display font-bold text-xs flex items-center justify-center">
+                WS
+              </div>
+              <div>
+                <p class="text-xs font-bold text-factorial-dark leading-tight">WS Consultoria &amp; Gestão</p>
+                <p class="text-[11px] text-gray-500">CNPJ • Regime CLT</p>
+              </div>
+            </div>
+            <i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i>
+          </div>
+
+          <nav class="flex lg:flex-col gap-1 overflow-x-auto pb-2 lg:pb-0">
+            <button onclick="switchWebTab('dashboard')" id="nav-web-dashboard"
+              class="web-nav-btn flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold bg-factorial-coralLight text-factorial-coral whitespace-nowrap transition-all">
+              <span class="flex items-center gap-2.5">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                Dashboard &amp; Aprovações
+              </span>
+              <span id="sidebar-pending-badge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-factorial-coral text-white">3</span>
+            </button>
+
+            <button onclick="switchWebTab('calendar')" id="nav-web-calendar"
+              class="web-nav-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100/80 hover:text-factorial-dark whitespace-nowrap transition-all">
+              <i data-lucide="calendar-days" class="w-4 h-4"></i>
+              Calendário da Equipe
+            </button>
+
+            <button onclick="switchWebTab('employees')" id="nav-web-employees"
+              class="web-nav-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100/80 hover:text-factorial-dark whitespace-nowrap transition-all">
+              <i data-lucide="users" class="w-4 h-4"></i>
+              Colaboradores &amp; Saldos
+            </button>
+
+            <button onclick="switchWebTab('policies')" id="nav-web-policies"
+              class="web-nav-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100/80 hover:text-factorial-dark whitespace-nowrap transition-all">
+              <i data-lucide="scale" class="w-4 h-4"></i>
+              Regras CLT &amp; Políticas
+            </button>
+          </nav>
+        </div>
+
+        <!-- WS AI - Assistente de RH Card -->
+        <div class="hidden lg:block p-4">
+          <div class="rounded-2xl bg-gradient-to-br from-[#191C24] via-[#1E2E2E] to-[#306464] p-4 text-white shadow-soft relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-[#0E8388]/30 blur-xl"></div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#306464] to-[#0E8388] flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-white"></i>
+              </span>
+              <span class="font-display font-bold text-xs tracking-wide uppercase text-teal-200">WS AI • Copiloto RH</span>
+            </div>
+            <p id="one-ai-insight" class="text-xs text-gray-200 leading-relaxed mb-3">
+              Analisando escalas de Novembro e Dezembro... Nenhum gargalo crítico detectado.
+            </p>
+            <button onclick="runOneAiAudit()"
+              class="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="wand-2" class="w-3.5 h-3.5 text-factorial-coral"></i>
+              Auditar Conflitos CLT
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Web Portal Main Content -->
+      <div class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-factorial-coral uppercase tracking-wider mb-1">
+              <span>Gestão de Tempo &amp; Ausências</span>
+              <span>•</span>
+              <span>Novembro 2026</span>
+            </div>
+            <h1 id="web-page-title" class="text-2xl sm:text-3xl font-display font-extrabold text-factorial-dark tracking-tight">
+              Controle de Férias &amp; Aprovações
+            </h1>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="openNewRequestModalWeb()"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-factorial-coral hover:bg-factorial-coralHover text-white text-sm font-semibold shadow-sm transition active:scale-[0.99]">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              Lançar Ausência (RH)
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI CARDS ROW -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-card hover:shadow-soft transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Solicitações Pendentes</span>
+              <span class="w-9 h-9 rounded-xl bg-factorial-coralLight text-factorial-coral flex items-center justify-center">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="kpi-pending" class="text-3xl font-display font-extrabold text-factorial-dark">3</span>
+              <span class="text-xs font-medium text-factorial-coral bg-factorial-coralLight px-2 py-0.5 rounded-full">Ação necessária</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Sincronizado com App Colaborador</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-card hover:shadow-soft transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Em Férias / Fora Hoje</span>
+              <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="sun" class="w-4 h-4"></i>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="kpi-away-today" class="text-3xl font-display font-extrabold text-factorial-dark">2</span>
+              <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">92% equipe ativa</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Cobertura operacional saudável</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-card hover:shadow-soft transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Saldo Médio Disponível</span>
+              <span class="w-9 h-9 rounded-xl bg-purple-50 text-factorial-purple flex items-center justify-center">
+                <i data-lucide="calendar-check" class="w-4 h-4"></i>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="kpi-avg-balance" class="text-3xl font-display font-extrabold text-factorial-dark">22.4</span>
+              <span class="text-xs font-medium text-gray-500">dias / colaborador</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Período aquisitivo 2025/2026</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-card hover:shadow-soft transition">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Alertas Vencimento CLT</span>
+              <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="kpi-clt-alerts" class="text-3xl font-display font-extrabold text-factorial-dark">1</span>
+              <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">2º Período &lt; 60d</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Evita dobra de férias (Art. 137 CLT)</p>
+          </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD & APROVAÇÕES -->
+        <div id="web-tab-dashboard" class="space-y-6">
+          <div class="bg-white rounded-2xl p-4 border border-gray-200/70 shadow-card flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-semibold text-gray-500 mr-1">Status:</span>
+              <button onclick="setWebFilter('status', 'all')" class="filter-status-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-factorial-dark text-white" data-val="all">Todos</button>
+              <button onclick="setWebFilter('status', 'pending')" class="filter-status-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-val="pending">Pendentes</button>
+              <button onclick="setWebFilter('status', 'approved')" class="filter-status-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-val="approved">Aprovados</button>
+              <button onclick="setWebFilter('status', 'rejected')" class="filter-status-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-val="rejected">Recusados</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <i data-lucide="filter" class="w-4 h-4 text-gray-400"></i>
+              <select id="filter-dept-select" onchange="setWebFilter('dept', this.value)"
+                class="text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-factorial-coral">
+                <option value="all">Todos os Departamentos</option>
+                <option value="Tecnologia">Tecnologia</option>
+                <option value="Produto">Produto &amp; Design</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Operações">Operações &amp; CS</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 class="font-display font-bold text-base text-factorial-dark">Fila de Solicitações de Férias &amp; Ausências</h2>
+                <p class="text-xs text-gray-500">Aprove ou recuse pedidos enviados pelo App Mobile do Colaborador</p>
+              </div>
+              <span class="text-xs font-medium text-gray-400" id="requests-count-label">Exibindo solicitações</span>
+            </div>
+
+            <div id="approval-queue-list" class="divide-y divide-gray-100"></div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 class="font-display font-bold text-base text-factorial-dark">Mapa de Ausências — Novembro / Dezembro 2026</h3>
+                <p class="text-xs text-gray-500">Visualização rápida de sobreposição de férias por departamento</p>
+              </div>
+              <button onclick="switchWebTab('calendar')" class="text-xs font-semibold text-factorial-coral hover:underline flex items-center gap-1">
+                Ver calendário completo <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div id="mini-gantt-container" class="overflow-x-auto"></div>
+          </div>
+        </div>
+
+        <!-- TAB 2: FULL TEAM CALENDAR -->
+        <div id="web-tab-calendar" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 class="font-display font-bold text-lg text-factorial-dark">Calendário Visual da Equipe (Novembro &amp; Dezembro 2026)</h2>
+                <p class="text-xs text-gray-500">Acompanhe feriados nacionais, férias aprovadas (verde) e solicitações pendentes (coral)</p>
+              </div>
+              <div class="flex items-center gap-4 text-xs font-medium">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Aprovado</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-factorial-coral inline-block"></span> Pendente</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-200 border border-amber-400 inline-block"></span> Feriado Nacional</span>
+              </div>
+            </div>
+            <div id="full-gantt-container" class="overflow-x-auto"></div>
+          </div>
+        </div>
+
+        <!-- TAB 3: EMPLOYEES & BALANCES -->
+        <div id="web-tab-employees" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 class="font-display font-bold text-lg text-factorial-dark">Saldos de Férias &amp; Períodos Aquisitivos (CLT)</h2>
+                <p class="text-xs text-gray-500">Controle individual de dias acumulados, agendados e limite concessivo</p>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/80 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200/70">
+                    <th class="py-3.5 px-6">Colaborador</th>
+                    <th class="py-3.5 px-4">Departamento</th>
+                    <th class="py-3.5 px-4">Saldo Disponível</th>
+                    <th class="py-3.5 px-4">Dias Agendados</th>
+                    <th class="py-3.5 px-4">Limite Concessivo CLT</th>
+                    <th class="py-3.5 px-6 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="employees-table-body" class="divide-y divide-gray-100 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: CLT POLICIES & SIMULATOR -->
+        <div id="web-tab-policies" class="hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card p-6 space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-factorial-coralLight text-factorial-coral flex items-center justify-center">
+                  <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h2 class="font-display font-bold text-lg text-factorial-dark">Política de Férias CLT (Reforma Trabalhista)</h2>
+                  <p class="text-xs text-gray-500">Validações aplicadas automaticamente no App Mobile</p>
+                </div>
+              </div>
+
+              <div class="space-y-3 pt-2">
+                <div class="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-sm font-bold text-factorial-dark">Fracionamento em até 3 períodos (Art. 134 §1º)</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-100 text-emerald-700">Ativo</span>
+                  </div>
+                  <p class="text-xs text-gray-600">Um dos períodos não pode ser inferior a <strong>14 dias corridos</strong> e os demais não podem ser inferiores a <strong>5 dias corridos</strong> cada.</p>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-sm font-bold text-factorial-dark">Abono Pecuniário — Venda de 1/3 (Art. 143)</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-100 text-emerald-700">Ativo</span>
+                  </div>
+                  <p class="text-xs text-gray-600">Permite converter até <strong>10 dias (1/3)</strong> do período de férias em abono pecuniário pago junto à remuneração de férias.</p>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-sm font-bold text-factorial-dark">Bloqueio de Início Antecedendo Feriado/DSR (Art. 134 §3º)</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-100 text-emerald-700">Ativo</span>
+                  </div>
+                  <p class="text-xs text-gray-600">É vedado o início das férias no período de <strong>2 dias que antecede feriado</strong> ou dia de repouso semanal remunerado.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-card p-6">
+              <h3 class="font-display font-bold text-lg text-factorial-dark mb-1">Simulador de Cálculo de Férias + 1/3 + Abono</h3>
+              <p class="text-xs text-gray-500 mb-5">Estime valores brutos para provisionamento de Departamento Pessoal</p>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Salário Bruto Mensal (R$)</label>
+                  <input type="number" id="calc-salary" value="6500" oninput="calculateVacationSim()"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-factorial-coral" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Dias de Descanso</label>
+                    <select id="calc-days" onchange="calculateVacationSim()"
+                      class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-factorial-coral">
+                      <option value="30">30 dias</option>
+                      <option value="20" selected>20 dias (c/ Abono)</option>
+                      <option value="15">15 dias</option>
+                      <option value="14">14 dias</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Vender 1/3 (Abono)?</label>
+                    <select id="calc-abono" onchange="calculateVacationSim()"
+                      class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-factorial-coral">
+                      <option value="yes" selected>Sim (10 dias)</option>
+                      <option value="no">Não</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="calc-result-box" class="p-4 rounded-2xl bg-factorial-bg border border-gray-200/80 space-y-2 mt-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. APP MOBILE (SIMULADOR INTERATIVO DE SMARTPHONE - COLABORADOR) -->
+    <section id="app-mobile-view" class="hidden flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-b from-[#F1F3F6] to-[#E5E8EE] min-h-[calc(100vh-95px)] transition-all">
+      <div class="max-w-md w-full mb-4 flex items-center justify-between bg-white/80 backdrop-blur px-4 py-2.5 rounded-2xl border border-gray-200/80 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-factorial-coral"></span>
+          <span class="text-xs font-semibold text-factorial-dark">App WS Consultoria &amp; Gestão</span>
+        </div>
+        <span class="text-[11px] text-gray-500">Solicite aqui e aprove no Portal Web</span>
+      </div>
+
+      <div class="relative w-full max-w-[390px] h-[780px] bg-white rounded-[44px] shadow-phone overflow-hidden flex flex-col border border-gray-200">
+        <div class="bg-factorial-coral text-white pt-3 pb-2 px-6 flex items-center justify-between text-[11px] font-semibold shrink-0 select-none">
+          <span>20:22</span>
+          <div class="w-24 h-5 bg-factorial-dark rounded-full mx-auto"></div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+            <i data-lucide="battery-full" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <div id="phone-screen-body" class="flex-1 overflow-y-auto phone-scroll bg-[#F8F9FA] flex flex-col">
+          <!-- MOBILE TAB 1: HOME -->
+          <div id="mobile-tab-home" class="flex-1 flex flex-col">
+            <div class="bg-gradient-to-br from-[#306464] to-[#0E8388] text-white px-5 pt-3 pb-16 rounded-b-[32px] shadow-sm relative">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                  <img id="mob-avatar" src="" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-white/60" />
+                  <div>
+                    <p class="text-[11px] text-teal-100 font-medium">WS Consultoria &amp; Gestão</p>
+                    <h2 id="mob-user-name" class="font-display font-bold text-base leading-tight">Camila Ferreira</h2>
+                  </div>
+                </div>
+                <button onclick="switchViewMode('web')" title="Ir para Portal Gestor"
+                  class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-white transition">
+                  <i data-lucide="bell" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="px-5 -mt-12 mb-4">
+              <div class="bg-white rounded-3xl p-5 shadow-soft border border-gray-100">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Saldo de Férias CLT</span>
+                  <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600">2025 / 2026</span>
+                </div>
+
+                <div class="flex items-end justify-between mb-4">
+                  <div>
+                    <span id="mob-balance-days" class="text-4xl font-display font-extrabold text-factorial-dark">25</span>
+                    <span class="text-sm font-semibold text-gray-500 ml-1">dias disponíveis</span>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[11px] text-gray-400">Agendados</p>
+                    <p id="mob-scheduled-days" class="text-sm font-bold text-factorial-purple">5 dias</p>
+                  </div>
+                </div>
+
+                <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
+                  <div id="mob-balance-bar" class="h-full bg-factorial-coral rounded-full transition-all duration-500" style="width: 83%"></div>
+                </div>
+                <div class="flex justify-between text-[11px] text-gray-400">
+                  <span>Período aquisitivo completo</span>
+                  <span id="mob-limit-date">Vence em Out/2027</span>
+                </div>
+
+                <button onclick="openMobileRequestDrawer()"
+                  class="mt-4 w-full py-3.5 px-4 rounded-2xl bg-factorial-coral hover:bg-factorial-coralHover text-white font-display font-bold text-sm shadow-md shadow-factorial-coral/25 flex items-center justify-center gap-2 transition active:scale-[0.98]">
+                  <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                  Solicitar Férias ou Ausência
+                </button>
+              </div>
+            </div>
+
+            <div class="px-5 mb-4">
+              <div class="bg-[#EAF3F3] border border-[#B7D4D4] rounded-2xl p-3 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-[#0E8388] text-white flex items-center justify-center shrink-0">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                <p class="text-[11px] text-[#191C24] leading-snug">
+                  <strong>Dica CLT:</strong> Você pode fracionar suas férias em até 3 períodos (mín. 14 dias em um deles) ou vender 1/3.
+                </p>
+              </div>
+            </div>
+
+            <div class="px-5 pb-6 flex-1">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-display font-bold text-sm text-factorial-dark">Minhas Solicitações</h3>
+                <span id="mob-req-count" class="text-xs font-semibold text-gray-400">2 registros</span>
+              </div>
+              <div id="mob-requests-list" class="space-y-2.5"></div>
+            </div>
+          </div>
+
+          <!-- MOBILE TAB 2: TEAM OUT TODAY -->
+          <div id="mobile-tab-team" class="hidden flex-1 flex-col p-5">
+            <h2 class="font-display font-extrabold text-xl text-factorial-dark mb-1">Quem está fora</h2>
+            <p class="text-xs text-gray-500 mb-5">Acompanhe as ausências da sua equipe em tempo real</p>
+            <div class="space-y-3" id="mob-team-away-list"></div>
+          </div>
+
+          <!-- MOBILE TAB 3: CLT RULES -->
+          <div id="mobile-tab-rules" class="hidden flex-1 flex-col p-5">
+            <h2 class="font-display font-extrabold text-xl text-factorial-dark mb-1">Minhas Regras CLT</h2>
+            <p class="text-xs text-gray-500 mb-4">Direitos e resumo do período aquisitivo</p>
+
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-card space-y-3 mb-4">
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-500">Regime de Contratação</span>
+                <span class="font-bold text-factorial-dark">CLT • 40h semanais</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-500">Direito Anual</span>
+                <span class="font-bold text-factorial-dark">30 dias corridos</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-500">Adicional Constitucional</span>
+                <span class="font-bold text-emerald-600">+ 1/3 sobre férias</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-500">Adiantamento 1ª Parcela 13º</span>
+                <span class="font-bold text-factorial-purple">Disponível na solicitação</span>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200/70 rounded-2xl p-4">
+              <h4 class="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                <i data-lucide="info" class="w-4 h-4 text-amber-600"></i>
+                Atenção às datas de início
+              </h4>
+              <p class="text-[11px] text-amber-800 leading-relaxed">
+                Conforme Art. 134 §3º da CLT, férias não podem iniciar nos 2 dias que antecedem feriados ou finais de semana (quinta ou sexta-feira em escala seg-sex).
+              </p>
+            </div>
+          </div>
+
+          <!-- MOBILE REQUEST CREATION SHEET -->
+          <div id="mob-request-drawer" class="hidden absolute inset-0 bg-white z-30 flex flex-col">
+            <div class="px-5 pt-10 pb-3 border-b border-gray-100 flex items-center justify-between bg-white">
+              <button onclick="closeMobileRequestDrawer()" class="p-1.5 rounded-xl bg-gray-100 text-gray-600">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+              <h3 class="font-display font-bold text-sm text-factorial-dark">Nova Solicitação</h3>
+              <span class="w-7"></span>
+            </div>
+
+            <form id="mob-request-form" onsubmit="submitMobileRequest(event)" class="flex-1 overflow-y-auto phone-scroll p-5 space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Tipo de Ausência</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="cursor-pointer">
+                    <input type="radio" name="mobType" value="Férias CLT" checked onchange="updateMobileCalc()" class="peer sr-only" />
+                    <div class="p-3 rounded-xl border border-gray-200 peer-checked:border-factorial-coral peer-checked:bg-factorial-coralLight/60 transition">
+                      <p class="text-xs font-bold text-factorial-dark">🏖️ Férias CLT</p>
+                      <p class="text-[10px] text-gray-500">Desconta do saldo</p>
+                    </div>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="mobType" value="Abono Pecuniário + Férias" onchange="updateMobileCalc()" class="peer sr-only" />
+                    <div class="p-3 rounded-xl border border-gray-200 peer-checked:border-factorial-coral peer-checked:bg-factorial-coralLight/60 transition">
+                      <p class="text-xs font-bold text-factorial-dark">💰 Férias + Venda 1/3</p>
+                      <p class="text-[10px] text-gray-500">Descanso + Abono</p>
+                    </div>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="mobType" value="Folga / Banco de Horas" onchange="updateMobileCalc()" class="peer sr-only" />
+                    <div class="p-3 rounded-xl border border-gray-200 peer-checked:border-factorial-coral peer-checked:bg-factorial-coralLight/60 transition">
+                      <p class="text-xs font-bold text-factorial-dark">⚡ Banco de Horas</p>
+                      <p class="text-[10px] text-gray-500">Folga compensatória</p>
+                    </div>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="mobType" value="Licença Médica / Pessoal" onchange="updateMobileCalc()" class="peer sr-only" />
+                    <div class="p-3 rounded-xl border border-gray-200 peer-checked:border-factorial-coral peer-checked:bg-factorial-coralLight/60 transition">
+                      <p class="text-xs font-bold text-factorial-dark">🩺 Licença / Atestado</p>
+                      <p class="text-[10px] text-gray-500">Justificativa legal</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">Data Início</label>
+                  <input type="date" id="mob-start-date" required onchange="updateMobileCalc()"
+                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-factorial-dark focus:outline-none focus:border-factorial-coral" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">Data Fim</label>
+                  <input type="date" id="mob-end-date" required onchange="updateMobileCalc()"
+                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-factorial-dark focus:outline-none focus:border-factorial-coral" />
+                </div>
+              </div>
+
+              <div id="mob-clt-validation-box" class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/80 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-500">Total de dias corridos:</span>
+                  <span id="mob-calc-days" class="text-sm font-extrabold text-factorial-coral">15 dias</span>
+                </div>
+                <p id="mob-clt-feedback" class="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i>
+                  <span>Período válido conforme Art. 134 da CLT.</span>
+                </p>
+              </div>
+
+              <label class="flex items-center justify-between p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50">
+                <div>
+                  <p class="text-xs font-bold text-factorial-dark">Adiantar 1ª parcela do 13º</p>
+                  <p class="text-[10px] text-gray-500">Receber junto com o pagamento das férias</p>
+                </div>
+                <input type="checkbox" id="mob-advance-13" class="w-4 h-4 accent-factorial-coral rounded" />
+              </label>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Plano de Cobertura / Observação</label>
+                <textarea id="mob-notes" rows="2" placeholder="Ex: Lucas assumirá minhas demandas críticas durante o período..."
+                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-factorial-coral"></textarea>
+              </div>
+
+              <button type="submit"
+                class="w-full py-3.5 rounded-2xl bg-factorial-coral hover:bg-factorial-coralHover text-white font-display font-bold text-sm shadow-md transition">
+                Enviar para Aprovação do Gestor
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="bg-white border-t border-gray-100 px-6 py-2.5 flex items-center justify-around shrink-0 select-none">
+          <button onclick="switchMobileTab('home')" id="mob-nav-home" class="flex flex-col items-center gap-0.5 text-factorial-coral">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold">Início</span>
+          </button>
+          <button onclick="switchMobileTab('team')" id="mob-nav-team" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-gray-600">
+            <i data-lucide="users" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold">Equipe</span>
+          </button>
+          <button onclick="switchMobileTab('rules')" id="mob-nav-rules" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-gray-600">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold">Regras CLT</span>
+          </button>
+        </div>
+
+        <div class="bg-white pb-2 flex justify-center">
+          <div class="w-28 h-1 bg-gray-300 rounded-full"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: RECUSAR SOLICITAÇÃO -->
+  <div id="reject-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg text-factorial-dark">Recusar Solicitação</h3>
+        <button onclick="closeRejectModal()" class="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:text-gray-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-xs text-gray-500 mb-3">Informe o motivo da recusa. O colaborador receberá uma notificação instantânea no App Mobile.</p>
+      <textarea id="reject-reason-input" rows="3" placeholder="Ex: Alta demanda no fechamento mensal da sprint; sugerimos reagendar para a semana seguinte."
+        class="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-factorial-coral mb-4"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeRejectModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100">Cancelar</button>
+        <button onclick="confirmRejectRequest()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white">Confirmar Recusa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LANÇAR AUSÊNCIA PELO RH -->
+  <div id="web-new-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg text-factorial-dark">Lançar Ausência (RH / Gestor)</h3>
+        <button onclick="closeNewRequestModalWeb()" class="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:text-gray-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <form onsubmit="submitWebRequest(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Colaborador</label>
+          <select id="web-req-emp" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Tipo</label>
+          <select id="web-req-type" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold">
+            <option value="Férias CLT">Férias CLT</option>
+            <option value="Abono Pecuniário + Férias">Abono Pecuniário + Férias</option>
+            <option value="Folga / Banco de Horas">Folga / Banco de Horas</option>
+            <option value="Licença Médica / Pessoal">Licença Médica / Pessoal</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Início</label>
+            <input type="date" id="web-req-start" required value="2026-12-07" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Fim</label>
+            <input type="date" id="web-req-end" required value="2026-12-20" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observação</label>
+          <input type="text" id="web-req-notes" placeholder="Lançamento direto pelo RH" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeNewRequestModalWeb()" class="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-factorial-coral text-white hover:bg-factorial-coralHover">Registrar &amp; Aprovar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    const state = {
+      viewMode: 'web',
+      activeWebTab: 'dashboard',
+      activeMobileTab: 'home',
+      activeEmployeeId: 'emp-1',
+      filterStatus: 'all',
+      filterDept: 'all',
+      rejectingRequestId: null,
+
+      employees: [
+        {
+          id: 'emp-1',
+          name: 'Camila Ferreira',
+          role: 'Product Designer Sênior',
+          dept: 'Produto',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+          totalDays: 30,
+          availableDays: 25,
+          scheduledDays: 5,
+          limitDate: '15/10/2027',
+          cltWarning: false
+        },
+        {
+          id: 'emp-2',
+          name: 'Lucas Andrade',
+          role: 'Engenheiro Full-Stack',
+          dept: 'Tecnologia',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+          totalDays: 30,
+          availableDays: 16,
+          scheduledDays: 14,
+          limitDate: '10/01/2027',
+          cltWarning: true
+        },
+        {
+          id: 'emp-3',
+          name: 'Mariana Costa',
+          role: 'Analista de Growth',
+          dept: 'Marketing',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
+          totalDays: 30,
+          availableDays: 30,
+          scheduledDays: 0,
+          limitDate: '22/08/2027',
+          cltWarning: false
+        },
+        {
+          id: 'emp-4',
+          name: 'Rafael Almeida',
+          role: 'Coordenador de Operações',
+          dept: 'Operações',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+          totalDays: 30,
+          availableDays: 18,
+          scheduledDays: 12,
+          limitDate: '30/06/2027',
+          cltWarning: false
+        },
+        {
+          id: 'emp-5',
+          name: 'Beatriz Nogueira',
+          role: 'Tech Lead Backend',
+          dept: 'Tecnologia',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+          totalDays: 30,
+          availableDays: 20,
+          scheduledDays: 10,
+          limitDate: '14/09/2027',
+          cltWarning: false
+        }
+      ],
+
+      requests: [
+        {
+          id: 'req-101',
+          empId: 'emp-1',
+          type: 'Férias CLT',
+          startDate: '2026-12-14',
+          endDate: '2026-12-28',
+          days: 15,
+          advance13: true,
+          notes: 'Viagem de fim de ano em família. Lucas Andrade cobrirá as entregas de Design.',
+          status: 'pending',
+          createdAt: 'Hoje, 18:40',
+          rejectReason: ''
+        },
+        {
+          id: 'req-102',
+          empId: 'emp-2',
+          type: 'Abono Pecuniário + Férias',
+          startDate: '2026-12-01',
+          endDate: '2026-12-14',
+          days: 14,
+          advance13: false,
+          notes: '14 dias de descanso + venda de 10 dias (abono pecuniário CLT).',
+          status: 'pending',
+          createdAt: 'Ontem, 14:15',
+          rejectReason: ''
+        },
+        {
+          id: 'req-103',
+          empId: 'emp-3',
+          type: 'Folga / Banco de Horas',
+          startDate: '2026-11-23',
+          endDate: '2026-11-24',
+          days: 2,
+          advance13: false,
+          notes: 'Compensação de horas extras da campanha de Black Friday.',
+          status: 'pending',
+          createdAt: '16 Nov, 11:20',
+          rejectReason: ''
+        },
+        {
+          id: 'req-104',
+          empId: 'emp-4',
+          type: 'Férias CLT',
+          startDate: '2026-11-16',
+          endDate: '2026-11-27',
+          days: 12,
+          advance13: true,
+          notes: 'Segundo período de férias fracionadas.',
+          status: 'approved',
+          createdAt: '02 Nov, 09:00',
+          rejectReason: ''
+        },
+        {
+          id: 'req-105',
+          empId: 'emp-5',
+          type: 'Férias CLT',
+          startDate: '2026-11-16',
+          endDate: '2026-11-20',
+          days: 5,
+          advance13: false,
+          notes: 'Terceiro período (5 dias corridos conforme CLT).',
+          status: 'approved',
+          createdAt: '28 Out, 16:30',
+          rejectReason: ''
+        }
+      ]
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateEmployeeSelectors();
+      setDefaultMobileDates();
+      calculateVacationSim();
+      renderAll();
+      lucide.createIcons();
+    });
+
+    function getEmployee(id) {
+      return state.employees.find(e => e.id === id) || state.employees[0];
+    }
+
+    function formatDateBR(isoDate) {
+      if (!isoDate) return '';
+      const [y, m, d] = isoDate.split('-');
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return `${d} ${months[parseInt(m, 10) - 1]}`;
+    }
+
+    function calcDaysBetween(startStr, endStr) {
+      const start = new Date(startStr + 'T00:00:00');
+      const end = new Date(endStr + 'T00:00:00');
+      const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      return diff > 0 ? diff : 0;
+    }
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const borderClass = type === 'success' ? 'border-emerald-500' : type === 'warning' ? 'border-amber-500' : 'border-factorial-coral';
+      const iconName = type === 'success' ? 'check-circle-2' : type === 'warning' ? 'alert-circle' : 'bell';
+      const iconColor = type === 'success' ? 'text-emerald-500' : type === 'warning' ? 'text-amber-500' : 'text-factorial-coral';
+
+      toast.className = `pointer-events-auto bg-white border-l-4 ${borderClass} rounded-2xl shadow-xl p-4 max-w-xs flex items-start gap-3 transform transition-all duration-300 translate-y-2 opacity-0`;
+      toast.innerHTML = `
+        <i data-lucide="${iconName}" class="w-5 h-5 ${iconColor} shrink-0 mt-0.5"></i>
+        <div>
+          <p class="text-xs font-bold text-factorial-dark">${title}</p>
+          <p class="text-[11px] text-gray-500 mt-0.5 leading-snug">${message}</p>
+        </div>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3800);
+    }
+
+    function switchViewMode(mode) {
+      state.viewMode = mode;
+      const webView = document.getElementById('portal-web-view');
+      const mobView = document.getElementById('app-mobile-view');
+      const btnWeb = document.getElementById('btn-mode-web');
+      const btnMob = document.getElementById('btn-mode-mobile');
+      const btnSplit = document.getElementById('btn-mode-split');
+
+      [btnWeb, btnMob, btnSplit].forEach(b => {
+        if (!b) return;
+        b.classList.remove('bg-white', 'text-factorial-dark', 'shadow-sm');
+        b.classList.add('text-gray-600');
+      });
+
+      if (mode === 'web') {
+        webView.classList.remove('hidden');
+        mobView.classList.add('hidden');
+        mobView.classList.remove('flex', 'xl:w-[440px]', 'border-l', 'border-gray-200');
+        btnWeb.classList.add('bg-white', 'text-factorial-dark', 'shadow-sm');
+        btnWeb.classList.remove('text-gray-600');
+      } else if (mode === 'mobile') {
+        webView.classList.add('hidden');
+        mobView.classList.remove('hidden', 'xl:w-[440px]', 'border-l', 'border-gray-200');
+        mobView.classList.add('flex', 'w-full');
+        btnMob.classList.add('bg-white', 'text-factorial-dark', 'shadow-sm');
+        btnMob.classList.remove('text-gray-600');
+        document.getElementById('mobile-badge-count').classList.add('hidden');
+      } else if (mode === 'split') {
+        webView.classList.remove('hidden');
+        mobView.classList.remove('hidden', 'w-full');
+        mobView.classList.add('flex', 'xl:w-[440px]', 'shrink-0', 'border-l', 'border-gray-200');
+        btnSplit.classList.add('bg-white', 'text-factorial-dark', 'shadow-sm');
+        btnSplit.classList.remove('text-gray-600');
+      }
+    }
+
+    function switchWebTab(tab) {
+      state.activeWebTab = tab;
+      ['dashboard', 'calendar', 'employees', 'policies'].forEach(t => {
+        document.getElementById(`web-tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-web-${t}`);
+        navBtn.classList.remove('bg-factorial-coralLight', 'text-factorial-coral', 'font-semibold');
+        navBtn.classList.add('text-gray-600', 'font-medium');
+      });
+
+      document.getElementById(`web-tab-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-web-${tab}`);
+      activeBtn.classList.add('bg-factorial-coralLight', 'text-factorial-coral', 'font-semibold');
+      activeBtn.classList.remove('text-gray-600', 'font-medium');
+
+      const titles = {
+        dashboard: 'Controle de Férias & Aprovações',
+        calendar: 'Calendário de Ausências da Equipe',
+        employees: 'Colaboradores & Saldos CLT',
+        policies: 'Regras CLT & Simulador de Férias'
+      };
+      document.getElementById('web-page-title').textContent = titles[tab];
+    }
+
+    function switchMobileTab(tab) {
+      state.activeMobileTab = tab;
+      ['home', 'team', 'rules'].forEach(t => {
+        document.getElementById(`mobile-tab-${t}`).classList.add('hidden');
+        const nav = document.getElementById(`mob-nav-${t}`);
+        nav.classList.remove('text-factorial-coral');
+        nav.classList.add('text-gray-400');
+      });
+
+      document.getElementById(`mobile-tab-${tab}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`mob-nav-${tab}`);
+      activeNav.classList.add('text-factorial-coral');
+      activeNav.classList.remove('text-gray-400');
+    }
+
+    function populateEmployeeSelectors() {
+      const headerSel = document.getElementById('active-employee-select');
+      const webSel = document.getElementById('web-req-emp');
+      headerSel.innerHTML = '';
+      webSel.innerHTML = '';
+
+      state.employees.forEach(emp => {
+        headerSel.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.dept})</option>`;
+        webSel.innerHTML += `<option value="${emp.id}">${emp.name} — Saldo: ${emp.availableDays}d</option>`;
+      });
+    }
+
+    function changeActiveEmployee(empId) {
+      state.activeEmployeeId = empId;
+      renderAll();
+      const emp = getEmployee(empId);
+      showToast('Perfil Mobile Alterado', `Visualizando App como ${emp.name}.`, 'info');
+    }
+
+    function renderAll() {
+      renderKPIs();
+      renderApprovalQueue();
+      renderGanttCalendars();
+      renderEmployeesTable();
+      renderMobileApp();
+      lucide.createIcons();
+    }
+
+    function renderKPIs() {
+      const pendingCount = state.requests.filter(r => r.status === 'pending').length;
+      const approvedNow = state.requests.filter(r => r.status === 'approved').length;
+      const avgBalance = (state.employees.reduce((acc, e) => acc + e.availableDays, 0) / state.employees.length).toFixed(1);
+      const cltWarnings = state.employees.filter(e => e.cltWarning).length;
+
+      document.getElementById('kpi-pending').textContent = pendingCount;
+      document.getElementById('sidebar-pending-badge').textContent = pendingCount;
+      document.getElementById('kpi-away-today').textContent = approvedNow;
+      document.getElementById('kpi-avg-balance').textContent = avgBalance;
+      document.getElementById('kpi-clt-alerts').textContent = cltWarnings;
+    }
+
+    function setWebFilter(type, value) {
+      if (type === 'status') {
+        state.filterStatus = value;
+        document.querySelectorAll('.filter-status-btn').forEach(btn => {
+          if (btn.dataset.val === value) {
+            btn.classList.add('bg-factorial-dark', 'text-white');
+            btn.classList.remove('bg-gray-100', 'text-gray-600');
+          } else {
+            btn.classList.remove('bg-factorial-dark', 'text-white');
+            btn.classList.add('bg-gray-100', 'text-gray-600');
+          }
+        });
+      } else if (type === 'dept') {
+        state.filterDept = value;
+      }
+      renderApprovalQueue();
+      lucide.createIcons();
+    }
+
+    function renderApprovalQueue() {
+      const container = document.getElementById('approval-queue-list');
+      const filtered = state.requests.filter(req => {
+        const emp = getEmployee(req.empId);
+        const matchStatus = state.filterStatus === 'all' || req.status === state.filterStatus;
+        const matchDept = state.filterDept === 'all' || emp.dept === state.filterDept;
+        return matchStatus && matchDept;
+      });
+
+      document.getElementById('requests-count-label').textContent = `${filtered.length} solicitação(ões)`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-10 text-center"><p class="text-sm font-semibold text-gray-500">Nenhuma solicitação encontrada para este filtro.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(req => {
+        const emp = getEmployee(req.empId);
+        const statusBadges = {
+          pending: `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/70"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendente</span>`,
+          approved: `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70"><i data-lucide="check" class="w-3 h-3"></i> Aprovado</span>`,
+          rejected: `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200/70"><i data-lucide="x" class="w-3 h-3"></i> Recusado</span>`
+        };
+
+        const actionButtons = req.status === 'pending'
+          ? `
+            <div class="flex items-center gap-2">
+              <button onclick="openRejectModal('${req.id}')"
+                class="px-3.5 py-2 rounded-xl border border-gray-200 hover:border-red-200 hover:bg-red-50 text-xs font-semibold text-gray-600 hover:text-red-600 transition">
+                Recusar
+              </button>
+              <button onclick="approveRequest('${req.id}')"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5 transition">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                Aprovar
+              </button>
+            </div>
+          `
+          : `<div class="text-right">${statusBadges[req.status]}</div>`;
+
+        return `
+          <div class="p-5 hover:bg-gray-50/70 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+              <img src="${emp.avatar}" alt="${emp.name}" class="w-11 h-11 rounded-full object-cover ring-2 ring-gray-100 shrink-0" />
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h4 class="font-display font-bold text-sm text-factorial-dark">${emp.name}</h4>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">${emp.dept}</span>
+                  <span class="text-[11px] text-gray-400">• ${req.createdAt}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-1">
+                  <span class="text-xs font-bold text-factorial-coral">${req.type}</span>
+                  <span class="text-xs text-gray-400">•</span>
+                  <span class="text-xs font-semibold text-gray-700">${formatDateBR(req.startDate)} até ${formatDateBR(req.endDate)} (${req.days} dias)</span>
+                  ${req.advance13 ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-factorial-purple border border-purple-200/60">+ 1ª Parc. 13º</span>` : ''}
+                </div>
+                ${req.notes ? `<p class="text-xs text-gray-500 mt-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 inline-block">"${req.notes}"</p>` : ''}
+                ${req.status === 'rejected' && req.rejectReason ? `<p class="text-xs text-red-600 mt-1 font-medium">Motivo da recusa: ${req.rejectReason}</p>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between lg:justify-end gap-4 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+              <div class="text-left lg:text-right mr-2">
+                <span class="block text-[10px] uppercase font-bold text-gray-400">Saldo Atual</span>
+                <span class="text-xs font-extrabold text-factorial-dark">${emp.availableDays} dias</span>
+              </div>
+              ${actionButtons}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function approveRequest(reqId) {
+      const req = state.requests.find(r => r.id === reqId);
+      if (!req || req.status !== 'pending') return;
+
+      req.status = 'approved';
+      const emp = getEmployee(req.empId);
+
+      if (req.type.includes('Férias')) {
+        emp.availableDays = Math.max(0, emp.availableDays - req.days);
+        emp.scheduledDays += req.days;
+      }
+
+      renderAll();
+      showToast(
+        'Solicitação Aprovada!',
+        `Férias de ${emp.name} (${req.days}d) confirmadas e sincronizadas no App Mobile.`,
+        'success'
+      );
+
+      if (state.viewMode === 'web') {
+        const badge = document.getElementById('mobile-badge-count');
+        badge.textContent = '1';
+        badge.classList.remove('hidden');
+      }
+    }
+
+    function openRejectModal(reqId) {
+      state.rejectingRequestId = reqId;
+      document.getElementById('reject-reason-input').value = '';
+      document.getElementById('reject-modal').classList.remove('hidden');
+    }
+
+    function closeRejectModal() {
+      state.rejectingRequestId = null;
+      document.getElementById('reject-modal').classList.add('hidden');
+    }
+
+    function confirmRejectRequest() {
+      const req = state.requests.find(r => r.id === state.rejectingRequestId);
+      if (!req) return;
+      const reason = document.getElementById('reject-reason-input').value.trim() || 'Conflito de escala no departamento.';
+      req.status = 'rejected';
+      req.rejectReason = reason;
+
+      closeRejectModal();
+      renderAll();
+      showToast('Solicitação Recusada', 'O colaborador foi notificado no App Mobile.', 'warning');
+    }
+
+    function renderGanttCalendars() {
+      const daysTimeline = [
+        { date: '2026-11-16', label: '16/11' },
+        { date: '2026-11-20', label: '20/11', holiday: 'Consciência Negra' },
+        { date: '2026-11-23', label: '23/11' },
+        { date: '2026-11-27', label: '27/11' },
+        { date: '2026-12-01', label: '01/12' },
+        { date: '2026-12-07', label: '07/12' },
+        { date: '2026-12-14', label: '14/12' },
+        { date: '2026-12-21', label: '21/12' },
+        { date: '2026-12-25', label: '25/12', holiday: 'Natal' },
+        { date: '2026-12-28', label: '28/12' },
+      ];
+
+      const buildTable = () => `
+        <table class="w-full min-w-[680px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-gray-200/80 text-[11px] font-bold text-gray-500">
+              <th class="py-2.5 pr-4 w-48">Colaborador</th>
+              ${daysTimeline.map(d => `
+                <th class="py-2.5 px-1 text-center ${d.holiday ? 'bg-amber-50 text-amber-800 rounded-t-lg' : ''}" title="${d.holiday || ''}">
+                  ${d.label}
+                  ${d.holiday ? '<span class="block text-[9px] font-normal">Feriado</span>' : ''}
+                </th>
+              `).join('')}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-xs">
+            ${state.employees.map(emp => {
+              const empReqs = state.requests.filter(r => r.empId === emp.id && r.status !== 'rejected');
+              return `
+                <tr>
+                  <td class="py-3 pr-4">
+                    <div class="flex items-center gap-2">
+                      <img src="${emp.avatar}" class="w-7 h-7 rounded-full object-cover" />
+                      <div>
+                        <p class="font-bold text-factorial-dark leading-tight">${emp.name}</p>
+                        <p class="text-[10px] text-gray-400">${emp.dept}</p>
+                      </div>
+                    </div>
+                  </td>
+                  ${daysTimeline.map(slot => {
+                    const activeReq = empReqs.find(r => slot.date >= r.startDate && slot.date <= r.endDate);
+                    if (activeReq) {
+                      const bg = activeReq.status === 'approved' ? 'bg-emerald-500 text-white' : 'bg-factorial-coral text-white';
+                      return `<td class="p-1"><div class="h-7 rounded-lg ${bg} flex items-center justify-center text-[10px] font-bold shadow-xs" title="${activeReq.type}">${activeReq.status === 'approved' ? 'Férias' : 'Pend.'}</div></td>`;
+                    }
+                    return `<td class="p-1 ${slot.holiday ? 'bg-amber-50/60' : ''}"><div class="h-7 rounded-lg bg-gray-50/70"></div></td>`;
+                  }).join('')}
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById('mini-gantt-container').innerHTML = buildTable();
+      document.getElementById('full-gantt-container').innerHTML = buildTable();
+    }
+
+    function renderEmployeesTable() {
+      const tbody = document.getElementById('employees-table-body');
+      tbody.innerHTML = state.employees.map(emp => `
+        <tr class="hover:bg-gray-50/70 transition">
+          <td class="py-4 px-6">
+            <div class="flex items-center gap-3">
+              <img src="${emp.avatar}" class="w-9 h-9 rounded-full object-cover" />
+              <div>
+                <p class="font-bold text-factorial-dark">${emp.name}</p>
+                <p class="text-xs text-gray-400">${emp.role}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-4">
+            <span class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">${emp.dept}</span>
+          </td>
+          <td class="py-4 px-4">
+            <span class="font-display font-extrabold text-base text-factorial-dark">${emp.availableDays} dias</span>
+            <span class="text-xs text-gray-400">/ ${emp.totalDays}d</span>
+          </td>
+          <td class="py-4 px-4 font-semibold text-factorial-purple">${emp.scheduledDays} dias</td>
+          <td class="py-4 px-4">
+            ${emp.cltWarning
+              ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ${emp.limitDate} (Urgente)</span>`
+              : `<span class="text-xs font-medium text-gray-600">${emp.limitDate}</span>`
+            }
+          </td>
+          <td class="py-4 px-6 text-right">
+            <button onclick="inspectEmployeeOnMobile('${emp.id}')"
+              class="text-xs font-semibold text-factorial-coral hover:underline">
+              Abrir no App Mobile →
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function inspectEmployeeOnMobile(empId) {
+      state.activeEmployeeId = empId;
+      document.getElementById('active-employee-select').value = empId;
+      renderAll();
+      switchViewMode('mobile');
+    }
+
+    function renderMobileApp() {
+      const emp = getEmployee(state.activeEmployeeId);
+
+      document.getElementById('header-avatar').src = emp.avatar;
+      document.getElementById('mob-avatar').src = emp.avatar;
+      document.getElementById('mob-user-name').textContent = emp.name;
+      document.getElementById('mob-balance-days').textContent = emp.availableDays;
+      document.getElementById('mob-scheduled-days').textContent = `${emp.scheduledDays} dias`;
+      document.getElementById('mob-limit-date').textContent = `Limite: ${emp.limitDate}`;
+
+      const pct = Math.min(100, Math.round((emp.availableDays / emp.totalDays) * 100));
+      document.getElementById('mob-balance-bar').style.width = `${pct}%`;
+
+      const myReqs = state.requests.filter(r => r.empId === emp.id);
+      document.getElementById('mob-req-count').textContent = `${myReqs.length} registro(s)`;
+
+      const mobList = document.getElementById('mob-requests-list');
+      if (myReqs.length === 0) {
+        mobList.innerHTML = `<div class="bg-white rounded-2xl p-6 text-center text-xs text-gray-400 border border-gray-100">Você ainda não possui solicitações registradas.</div>`;
+      } else {
+        mobList.innerHTML = myReqs.map(req => {
+          const statusChip = {
+            pending: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">⏳ Pendente</span>`,
+            approved: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70">✅ Aprovado</span>`,
+            rejected: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200/70">❌ Recusado</span>`
+          }[req.status];
+
+          return `
+            <div class="bg-white rounded-2xl p-3.5 border border-gray-100 shadow-card">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-bold text-factorial-dark">${req.type}</span>
+                ${statusChip}
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-gray-500">
+                <span>${formatDateBR(req.startDate)} → ${formatDateBR(req.endDate)}</span>
+                <span class="font-bold text-factorial-coral">${req.days} dias</span>
+              </div>
+              ${req.status === 'rejected' && req.rejectReason ? `
+                <p class="mt-2 text-[10px] text-red-600 bg-red-50 p-2 rounded-lg">Motivo: ${req.rejectReason}</p>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      const teamAwayList = document.getElementById('mob-team-away-list');
+      const awayReqs = state.requests.filter(r => r.status === 'approved');
+      teamAwayList.innerHTML = awayReqs.map(r => {
+        const member = getEmployee(r.empId);
+        return `
+          <div class="bg-white rounded-2xl p-3.5 border border-gray-100 shadow-card flex items-center gap-3">
+            <img src="${member.avatar}" class="w-10 h-10 rounded-full object-cover" />
+            <div class="flex-1">
+              <p class="text-xs font-bold text-factorial-dark">${member.name}</p>
+              <p class="text-[11px] text-gray-400">${member.dept} • ${r.type}</p>
+              <p class="text-[11px] font-semibold text-emerald-600 mt-0.5">Retorna após ${formatDateBR(r.endDate)}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setDefaultMobileDates() {
+      document.getElementById('mob-start-date').value = '2027-01-11';
+      document.getElementById('mob-end-date').value = '2027-01-25';
+      updateMobileCalc();
+    }
+
+    function openMobileRequestDrawer() {
+      document.getElementById('mob-request-drawer').classList.remove('hidden');
+      updateMobileCalc();
+      lucide.createIcons();
+    }
+
+    function closeMobileRequestDrawer() {
+      document.getElementById('mob-request-drawer').classList.add('hidden');
+    }
+
+    function updateMobileCalc() {
+      const startStr = document.getElementById('mob-start-date').value;
+      const endStr = document.getElementById('mob-end-date').value;
+      const type = document.querySelector('input[name="mobType"]:checked').value;
+      const days = calcDaysBetween(startStr, endStr);
+
+      document.getElementById('mob-calc-days').textContent = `${days} dia(s)`;
+      const feedbackEl = document.getElementById('mob-clt-feedback');
+
+      if (days <= 0) {
+        feedbackEl.className = 'text-[11px] text-red-600 font-medium flex items-center gap-1';
+        feedbackEl.innerHTML = `<i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i><span>A data final deve ser igual ou posterior à inicial.</span>`;
+      } else if (type.includes('Férias') && days < 5) {
+        feedbackEl.className = 'text-[11px] text-amber-700 font-medium flex items-center gap-1';
+        feedbackEl.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>Atenção CLT: Períodos de férias não podem ser inferiores a 5 dias corridos.</span>`;
+      } else {
+        feedbackEl.className = 'text-[11px] text-emerald-700 font-medium flex items-center gap-1';
+        feedbackEl.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>Período válido conforme Art. 134 da CLT.</span>`;
+      }
+      lucide.createIcons();
+    }
+
+    function submitMobileRequest(e) {
+      e.preventDefault();
+      const startStr = document.getElementById('mob-start-date').value;
+      const endStr = document.getElementById('mob-end-date').value;
+      const type = document.querySelector('input[name="mobType"]:checked').value;
+      const advance13 = document.getElementById('mob-advance-13').checked;
+      const notes = document.getElementById('mob-notes').value.trim();
+      const days = calcDaysBetween(startStr, endStr);
+
+      if (days <= 0) {
+        showToast('Data Inválida', 'Verifique as datas de início e fim.', 'warning');
+        return;
+      }
+
+      const newReq = {
+        id: 'req-' + Date.now(),
+        empId: state.activeEmployeeId,
+        type,
+        startDate: startStr,
+        endDate: endStr,
+        days,
+        advance13,
+        notes,
+        status: 'pending',
+        createdAt: 'Agora mesmo',
+        rejectReason: ''
+      };
+
+      state.requests.unshift(newReq);
+      closeMobileRequestDrawer();
+      document.getElementById('mob-notes').value = '';
+      renderAll();
+
+      const emp = getEmployee(state.activeEmployeeId);
+      showToast(
+        'Solicitação Enviada ao RH!',
+        `${emp.name} solicitou ${days}d de ${type}. Já disponível na fila do Portal Web!`,
+        'success'
+      );
+    }
+
+    function openNewRequestModalWeb() {
+      document.getElementById('web-new-modal').classList.remove('hidden');
+    }
+
+    function closeNewRequestModalWeb() {
+      document.getElementById('web-new-modal').classList.add('hidden');
+    }
+
+    function submitWebRequest(e) {
+      e.preventDefault();
+      const empId = document.getElementById('web-req-emp').value;
+      const type = document.getElementById('web-req-type').value;
+      const startStr = document.getElementById('web-req-start').value;
+      const endStr = document.getElementById('web-req-end').value;
+      const notes = document.getElementById('web-req-notes').value.trim() || 'Registrado diretamente pelo RH.';
+      const days = calcDaysBetween(startStr, endStr);
+
+      if (days <= 0) return;
+
+      const emp = getEmployee(empId);
+      if (type.includes('Férias')) {
+        emp.availableDays = Math.max(0, emp.availableDays - days);
+        emp.scheduledDays += days;
+      }
+
+      state.requests.unshift({
+        id: 'req-' + Date.now(),
+        empId,
+        type,
+        startDate: startStr,
+        endDate: endStr,
+        days,
+        advance13: false,
+        notes,
+        status: 'approved',
+        createdAt: 'Agora (RH)',
+        rejectReason: ''
+      });
+
+      closeNewRequestModalWeb();
+      renderAll();
+      showToast('Ausência Registrada', `Férias de ${emp.name} (${days}d) aprovadas e atualizadas no App Mobile.`, 'success');
+    }
+
+    function calculateVacationSim() {
+      const salary = parseFloat(document.getElementById('calc-salary').value) || 0;
+      const days = parseInt(document.getElementById('calc-days').value, 10);
+      const hasAbono = document.getElementById('calc-abono').value === 'yes';
+
+      const dailyRate = salary / 30;
+      const baseVacation = dailyRate * days;
+      const oneThirdVacation = baseVacation / 3;
+      const abonoDays = hasAbono ? 10 : 0;
+      const abonoBase = dailyRate * abonoDays;
+      const abonoOneThird = abonoBase / 3;
+      const totalGross = baseVacation + oneThirdVacation + abonoBase + abonoOneThird;
+
+      const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      document.getElementById('calc-result-box').innerHTML = `
+        <div class="flex justify-between text-xs">
+          <span class="text-gray-500">Férias (${days} dias):</span>
+          <span class="font-semibold text-factorial-dark">${fmt(baseVacation)}</span>
+        </div>
+        <div class="flex justify-between text-xs">
+          <span class="text-gray-500">Adicional 1/3 Constitucional:</span>
+          <span class="font-semibold text-factorial-dark">${fmt(oneThirdVacation)}</span>
+        </div>
+        <div class="flex justify-between text-xs">
+          <span class="text-gray-500">Abono Pecuniário + 1/3 (${abonoDays}d):</span>
+          <span class="font-semibold text-emerald-600">${fmt(abonoBase + abonoOneThird)}</span>
+        </div>
+        <div class="pt-2 border-t border-gray-200 flex justify-between items-center">
+          <span class="text-xs font-bold text-factorial-dark">Total Bruto Estimado:</span>
+          <span class="text-base font-display font-extrabold text-factorial-coral">${fmt(totalGross)}</span>
+        </div>
+      `;
+    }
+
+    function runOneAiAudit() {
+      const insightEl = document.getElementById('one-ai-insight');
+      insightEl.innerHTML = `<span class="text-amber-300 font-semibold">⚠️ Alerta WS AI:</span> Lucas Andrade (Tech) possui período limite em 10/01/2027. Recomenda-se aprovar sua solicitação de Dezembro.`;
+      showToast('Auditoria WS AI Concluída', '1 alerta de vencimento CLT identificado em Tecnologia.', 'warning');
+    }
+  </script>
+</body>
+</html>
